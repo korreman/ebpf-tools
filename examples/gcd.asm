@@ -1,6 +1,6 @@
 ;; Simple Euclids GCD, demonstrating control flow
-  mov r0 15
-  mov r1 27
+  mov r0 84
+  mov r1 126
 
 loop:
   jeq r1 0, done

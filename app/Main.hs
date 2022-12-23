@@ -65,12 +65,9 @@ main = do
       case res of
         Left err -> SE.die err
         Right prog ->
-          case resolveLabels prog of
-            Just prog ->
-              case wellformed prog of
-                Just err -> SE.die $ "Program not wellformed: " ++ err
-                _ -> out $ E.encodeProgram prog
-            Nothing -> SE.die $ "Bad label"
+          case validate prog of
+            Left err -> SE.die $ "Program not wellformed: " ++ err
+            Right prog -> out $ E.encodeProgram prog
 
     _ -> error "Not implemented yet"
 

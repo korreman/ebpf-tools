@@ -11,6 +11,9 @@ import qualified Text.Parsec.String as PS
 
 type Parser a = PS.Parser a
 
+asciiAlphaNum :: Parser Char
+asciiAlphaNum = satisfy (\c -> C.isAscii c && C.isAlphaNum c)
+
 ignore :: Parser a -> Parser ()
 ignore p = p >> return ()
 
@@ -22,7 +25,7 @@ lexeme p = p <* sc
 
 symbol s = lexeme $ string s
 
-operator = lexeme $ many1 alphaNum
+operator = lexeme $ many1 asciiAlphaNum
 
 reg :: Parser Reg
 reg = Reg . read <$> lexeme (char 'r' >> many1 digit) <?> "register"
@@ -40,11 +43,7 @@ imm = lexeme number <?> "immediate constant"
 
 regimm = (Left <$> reg) <|> (Right <$> imm)
 
-labelName = lexeme name <?> "label"
-  where name = do c <- asciiAlpha
-                  cs <- many1 (asciiAlpha <|> digit)
-                  return (c:cs)
-        asciiAlpha = satisfy (\c -> C.isAscii c && C.isAlpha c)
+labelName = lexeme (many1 asciiAlphaNum) <?> "label"
 
 jmpTarget = (Left <$> labelName) <|> (Right <$> imm)
 

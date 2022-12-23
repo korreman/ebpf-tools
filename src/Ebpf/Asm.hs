@@ -47,26 +47,46 @@ data Instruction =
 
 type Program = [Instruction]
 
-wellformed :: Program -> Maybe String
-wellformed instrs = asum $ fmap wfInst instrs
+validate :: Program -> Either String Program
+validate instrs = traverse vInst $ zip [0..] (filter notLabel instrs)
   where
+    notLabel (Label _) = False
+    notLabel _ = True
+    labels = collectLabels instrs
+    vLabel pos lab =
+      case M.lookup lab labels of
+          Just target -> Right (target - pos - 1)
+          Nothing -> Left $ "label '" ++ lab ++ "' doesn't exist"
+    vInst (pos, inst) =
+      case inst of
+        JCond c r1 r2 (Left lab) -> do
+          offset <- vLabel pos lab
+          return $ JCond c r1 r2 (Right offset)
+        Jmp (Left lab) -> do
+          offset <- vLabel pos lab
+          return $ Jmp (Right offset)
+        Label _ -> Left "internal error: labels should've been filtered at this point"
+        _ -> case wfInst inst of
+          Just err -> Left err
+          Nothing -> Right inst
+
     wfReg (Reg n) | 0 <= n && n < 11 = Nothing
                   | otherwise = Just $ "Invalid register: r"++show n
-    wfRegImm (Left r) = wfReg r
+    wfRegImm (Left reg) = wfReg reg
     wfRegImm (Right imm) | -2^31 <= imm && imm < 2^31 = Nothing
                          | otherwise = Just $ "Invalid immediate: "++show imm
     wfOffset n | -2^15 <= n && n < 2^15 = Nothing
                | otherwise = Just $ "Invalid immediate: "++show n
     wfInst inst =
       case inst of
-        Binary bs opr _ _ | bs == B8 || bs == B16 ->
-                            return $ concat ["Invalid byte size '", show bs
+        Binary bs opr dst src | bs == B8 || bs == B16 ->
+                            Just $ concat ["Invalid byte size '", show bs
                                             , "' for operation: ", show opr]
-        Binary _ _ r ri -> asum [wfReg r, wfRegImm ri]
-        Unary bs@B8 opr _ -> return $ concat ["Invalid byte size '", show bs
+        Binary bs opr r ri -> asum [wfReg r, wfRegImm ri] -- TODO
+        Unary bs@B8 opr _ -> Just $ concat ["Invalid byte size '", show bs
                                             , "' for operation: ", show opr]
-        Unary B16 Neg _ -> return "Invalid byte size 'B16' for operation: Neg"
-        Unary _ _ r -> wfReg r
+        Unary B16 Neg _ -> Just "Invalid byte size 'B16' for operation: Neg"
+        Unary bs alu r -> wfReg r
         Store _ dst off src -> asum [wfReg dst, off >>= wfOffset, wfRegImm src]
         Load _ dst src off -> asum [wfReg dst, off >>= wfOffset, wfReg src]
         LoadImm dst _ -> wfReg dst
@@ -76,28 +96,6 @@ wellformed instrs = asum $ fmap wfInst instrs
         _ -> Nothing
   -- | Call Imm
   -- | Exit
-
-resolveLabels :: Program -> Maybe Program
-resolveLabels instrs =
-  let labels = collectLabels instrs in
-  let realInstrs = filter notLabel instrs in
-  sequenceA $ zipWith (resolveInstr labels) [0..] realInstrs
-  where notLabel (Label _) = False
-        notLabel _ = True
-
-resolveInstr :: M.Map Label Imm -> Imm -> Instruction -> Maybe Instruction
-resolveInstr labels pos instr =
-    case instr of
-        JCond c r1 r2 (Left l) -> do
-            target <- M.lookup l labels
-            let offset = target - pos - 1
-            return $ JCond c r1 r2 (Right offset)
-        Jmp (Left l) -> do
-            target <- M.lookup l labels
-            let offset = target - pos - 1
-            return $ Jmp (Right offset)
-        Label l -> Nothing
-        instr -> Just instr
 
 collectLabels :: Program -> M.Map Label Imm
 collectLabels prog = snd $ foldl' collect (0, M.empty) prog
