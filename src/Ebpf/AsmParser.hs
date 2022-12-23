@@ -40,16 +40,28 @@ imm = lexeme number <?> "immediate constant"
 
 regimm = (Left <$> reg) <|> (Right <$> imm)
 
+labelName = lexeme name <?> "label"
+  where name = do c <- asciiAlpha
+                  cs <- many1 (asciiAlpha <|> digit)
+                  return (c:cs)
+        asciiAlpha = satisfy (\c -> C.isAscii c && C.isAlpha c)
+
+jmpTarget = (Left <$> labelName) <|> (Right <$> imm)
+
 ocomma = lexeme . optional $ char ','
 
 lowercase opr = map C.toLower $ show opr
+
+instrLabel = do
+  name <- labelName
+  lexeme $ char ':'
+  return $ Label name
 
 binAlus = do
   alu <- [Add .. Arsh]
   (post, sz) <- [("32", B32), ("", B64)]
   let name = lowercase alu ++ post
   return (name, Binary sz alu <$> reg <* ocomma <*> regimm)
-
 
 unAlus = do
  alu <- [Neg .. Be]
@@ -79,11 +91,10 @@ loads = do
                    (src, off) <- memref
                    return $ Load bsz dst src off)
 
-
 conditionals = do
   jmp <- [Jeq .. Jsle]
   let name = lowercase jmp
-  return(name, JCond jmp <$> reg <* ocomma <*> regimm <* ocomma <*> (symbol "+" *> imm)) -- TODO: Do we really want to require the '+' here?
+  return(name, JCond jmp <$> reg <* ocomma <*> regimm <* ocomma <*> jmpTarget)
 
 
 instruction = do
@@ -97,12 +108,12 @@ instruction = do
                              stores ++
                              loads ++ [ ("lddw", LoadImm <$> reg <* ocomma <*> imm)] ++
                              conditionals ++
-                             [ ("ja", Jmp <$> imm),
+                             [ ("ja", Jmp <$> jmpTarget),
                                ("call", Call <$> imm),
                                ("exit", pure Exit)]
 
 
-program = sc >> many1 instruction <* eof
+program = sc >> many1 (try instrLabel <|> instruction) <* eof
 
 parseFromFile :: FilePath -> IO(Either String Program)
 parseFromFile filename =

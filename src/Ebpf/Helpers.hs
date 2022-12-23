@@ -158,54 +158,54 @@ stxdw :: Reg -> Offset16 -> Reg -> Instruction
 stxdw dst off src = Store B64 dst (Just $ fromIntegral off) (Left src)
 
 ja :: Offset16 -> Instruction
-ja off = Jmp (fromIntegral off)
+ja off = Jmp (Right $ fromIntegral off)
 jmp :: Offset16 -> Instruction
-jmp off = Jmp (fromIntegral off)
+jmp off = Jmp (Right $ fromIntegral off)
 
 jeq_i :: Reg -> Imm32 -> Offset16 -> Instruction
-jeq_i dst imm off = JCond Jeq dst (Right $ fromIntegral imm) (fromIntegral off)
+jeq_i dst imm off = JCond Jeq dst (Right $ fromIntegral imm) (Right $ fromIntegral off)
 jeq_r :: Reg -> Reg -> Offset16 -> Instruction
-jeq_r dst src off = JCond Jeq dst (Left src) (fromIntegral off)
+jeq_r dst src off = JCond Jeq dst (Left src) (Right $ fromIntegral off)
 jgt_i :: Reg -> Imm32 -> Offset16 -> Instruction
-jgt_i dst imm off = JCond Jgt dst (Right $ fromIntegral imm) (fromIntegral off)
+jgt_i dst imm off = JCond Jgt dst (Right $ fromIntegral imm) (Right $ fromIntegral off)
 jgt_r :: Reg -> Reg -> Offset16 -> Instruction
-jgt_r dst src off = JCond Jgt dst (Left src) (fromIntegral off)
+jgt_r dst src off = JCond Jgt dst (Left src) (Right $ fromIntegral off)
 jge_i :: Reg -> Imm32 -> Offset16 -> Instruction
-jge_i dst imm off = JCond Jge dst (Right $ fromIntegral imm) (fromIntegral off)
+jge_i dst imm off = JCond Jge dst (Right $ fromIntegral imm) (Right $ fromIntegral off)
 jge_r :: Reg -> Reg -> Offset16 -> Instruction
-jge_r dst src off = JCond Jge dst (Left src) (fromIntegral off)
+jge_r dst src off = JCond Jge dst (Left src) (Right $ fromIntegral off)
 jlt_i :: Reg -> Imm32 -> Offset16 -> Instruction
-jlt_i dst imm off = JCond Jlt dst (Right $ fromIntegral imm) (fromIntegral off)
+jlt_i dst imm off = JCond Jlt dst (Right $ fromIntegral imm) (Right $ fromIntegral off)
 jlt_r :: Reg -> Reg -> Offset16 -> Instruction
-jlt_r dst src off = JCond Jlt dst (Left src) (fromIntegral off)
+jlt_r dst src off = JCond Jlt dst (Left src) (Right $ fromIntegral off)
 jle_i :: Reg -> Imm32 -> Offset16 -> Instruction
-jle_i dst imm off = JCond Jle dst (Right $ fromIntegral imm) (fromIntegral off)
+jle_i dst imm off = JCond Jle dst (Right $ fromIntegral imm) (Right $ fromIntegral off)
 jle_r :: Reg -> Reg -> Offset16 -> Instruction
-jle_r dst src off = JCond Jle dst (Left src) (fromIntegral off)
+jle_r dst src off = JCond Jle dst (Left src) (Right $ fromIntegral off)
 jset_i :: Reg -> Imm32 -> Offset16 -> Instruction
-jset_i dst imm off = JCond Jset dst (Right $ fromIntegral imm) (fromIntegral off)
+jset_i dst imm off = JCond Jset dst (Right $ fromIntegral imm) (Right $ fromIntegral off)
 jset_r :: Reg -> Reg -> Offset16 -> Instruction
-jset_r dst src off = JCond Jset dst (Left src) (fromIntegral off)
+jset_r dst src off = JCond Jset dst (Left src) (Right $ fromIntegral off)
 jne_i :: Reg -> Imm32 -> Offset16 -> Instruction
-jne_i dst imm off = JCond Jne dst (Right $ fromIntegral imm) (fromIntegral off)
+jne_i dst imm off = JCond Jne dst (Right $ fromIntegral imm) (Right $ fromIntegral off)
 jne_r :: Reg -> Reg -> Offset16 -> Instruction
-jne_r dst src off = JCond Jne dst (Left src) (fromIntegral off)
+jne_r dst src off = JCond Jne dst (Left src) (Right $ fromIntegral off)
 jsgt_i :: Reg -> Imm32 -> Offset16 -> Instruction
-jsgt_i dst imm off = JCond Jsgt dst (Right $ fromIntegral imm) (fromIntegral off)
+jsgt_i dst imm off = JCond Jsgt dst (Right $ fromIntegral imm) (Right $ fromIntegral off)
 jsgt_r :: Reg -> Reg -> Offset16 -> Instruction
-jsgt_r dst src off = JCond Jsgt dst (Left src) (fromIntegral off)
+jsgt_r dst src off = JCond Jsgt dst (Left src) (Right $ fromIntegral off)
 jsge_i :: Reg -> Imm32 -> Offset16 -> Instruction
-jsge_i dst imm off = JCond Jsge dst (Right $ fromIntegral imm) (fromIntegral off)
+jsge_i dst imm off = JCond Jsge dst (Right $ fromIntegral imm) (Right $ fromIntegral off)
 jsge_r :: Reg -> Reg -> Offset16 -> Instruction
-jsge_r dst src off = JCond Jsge dst (Left src) (fromIntegral off)
+jsge_r dst src off = JCond Jsge dst (Left src) (Right $ fromIntegral off)
 jslt_i :: Reg -> Imm32 -> Offset16 -> Instruction
-jslt_i dst imm off = JCond Jslt dst (Right $ fromIntegral imm) (fromIntegral off)
+jslt_i dst imm off = JCond Jslt dst (Right $ fromIntegral imm) (Right $ fromIntegral off)
 jslt_r :: Reg -> Reg -> Offset16 -> Instruction
-jslt_r dst src off = JCond Jslt dst (Left src) (fromIntegral off)
+jslt_r dst src off = JCond Jslt dst (Left src) (Right $ fromIntegral off)
 jsle_i :: Reg -> Imm32 -> Offset16 -> Instruction
-jsle_i dst imm off = JCond Jsle dst (Right $ fromIntegral imm) (fromIntegral off)
+jsle_i dst imm off = JCond Jsle dst (Right $ fromIntegral imm) (Right $ fromIntegral off)
 jsle_r :: Reg -> Reg -> Offset16 -> Instruction
-jsle_r dst src off = JCond Jsle dst (Left src) (fromIntegral off)
+jsle_r dst src off = JCond Jsle dst (Left src) (Right $ fromIntegral off)
 
 call :: Imm -> Instruction
 call f = Call f

@@ -19,7 +19,7 @@ instr = do
     case opc of
       _ | opc == E.c_EXIT -> Exit
       _ | opc == E.c_CALL -> Call (fromIntegral imm)
-      _ | opc == E.c_JA -> Jmp (fromIntegral off)
+      _ | opc == E.c_JA -> Jmp (Right $ fromIntegral off)
 
 
 program :: BG.Get Program
