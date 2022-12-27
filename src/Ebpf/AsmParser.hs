@@ -51,11 +51,6 @@ ocomma = lexeme . optional $ char ','
 
 lowercase opr = map C.toLower $ show opr
 
-instrLabel = do
-  name <- labelName
-  lexeme $ char ':'
-  return $ Label name
-
 binAlus = do
   alu <- [Add .. Arsh]
   (post, sz) <- [("32", B32), ("", B64)]
@@ -111,6 +106,11 @@ instruction = do
                                ("call", Call <$> imm),
                                ("exit", pure Exit)]
 
+instrLabel = do
+  name <- labelName
+  lexeme $ char ':'
+  inst <- instruction
+  return $ Label name inst
 
 program = sc >> many1 (try instrLabel <|> instruction) <* eof
 

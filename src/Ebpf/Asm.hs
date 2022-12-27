@@ -38,7 +38,7 @@ data Instruction =
   | Load BSize Reg Reg (Maybe Offset)
   | LoadImm Reg Imm
   | LoadMapFd Reg Imm
-  | Label Label
+  | Label Label Instruction
   | JCond Jcmp Reg RegImm JmpTarget
   | Jmp JmpTarget
   | Call Imm
@@ -48,10 +48,8 @@ data Instruction =
 type Program = [Instruction]
 
 validate :: Program -> Either String Program
-validate instrs = traverse vInst $ zip [0..] (filter notLabel instrs)
+validate instrs = traverse vInst $ zip [0..] instrs
   where
-    notLabel (Label _) = False
-    notLabel _ = True
     labels = collectLabels instrs
     vLabel pos lab =
       case M.lookup lab labels of
@@ -65,7 +63,7 @@ validate instrs = traverse vInst $ zip [0..] (filter notLabel instrs)
         Jmp (Left lab) -> do
           offset <- vLabel pos lab
           return $ Jmp (Right offset)
-        Label _ -> Left "internal error: labels should've been filtered at this point"
+        Label _ inst -> vInst (pos, inst)
         _ -> case wfInst inst of
           Just err -> Left err
           Nothing -> Right inst
@@ -98,11 +96,13 @@ validate instrs = traverse vInst $ zip [0..] (filter notLabel instrs)
   -- | Exit
 
 collectLabels :: Program -> M.Map Label Imm
-collectLabels prog = snd $ foldl' collect (0, M.empty) prog
+collectLabels prog = foldl' collect M.empty (zip [0..] prog)
+  where collect labels (i, Label lab _) = M.insert lab i labels
+        collect labels _ = labels
 
 collect ::  (Int64, M.Map Label Imm) -> Instruction -> (Int64, M.Map Label Imm)
 collect (n, labels) instr =
     case instr of
-        Label label -> (n, M.insert label n labels)
+        Label label inst -> (n, M.insert label n labels)
         _ -> (n + 1, labels)
 

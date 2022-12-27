@@ -123,6 +123,7 @@ encInstruction inst =
                              instr 0 0 0 0 (w32 (imm `shiftR` 32))
     LoadMapFd (Reg dst) imm -> instr c_LD_DW_IMM (w8 dst) c_BPF_PSEUDO_MAP_FD 0 (w32 imm) <>
                                instr 0 0 0 0 (w32 (imm `shiftR` 32))
+    Label _ inst -> encInstruction inst
     JCond jcmp dst src (Right off) -> encJCond jcmp dst src off
     Jmp (Right off) -> instr c_JA 0 0 (w16 off) 0
     Call imm -> instr c_CALL 0 0 0 (w32 imm)
